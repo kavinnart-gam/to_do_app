@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:to_do_app/model/task_model.dart';
 import 'package:to_do_app/services/task_service.dart';
 
 class TodoListProvider extends ChangeNotifier {
   List<Task> _tasks = <Task>[];
-  int _currentPage = 1;
+  // int _currentPage = 1;
   bool _isLoading = false;
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
-  String _dateHeader = "";
-  String get dateHeader => _dateHeader;
 
-  int _limit = 10;
+  int _limit = 20;
   int get limit => _limit;
   int _offset = 0;
   int get offset => _offset;
   String _currentStatus = "TODO";
   String get currentStatus => _currentStatus;
   bool isExpired = false;
+  List<String> _errMessage = [];
+  List<String> get errMessage => _errMessage;
+  int _totalPages = 0;
 
   RefreshController loadmoreController = RefreshController(initialRefresh: false);
 
@@ -41,7 +40,7 @@ class TodoListProvider extends ChangeNotifier {
   ];
 
   Future<void> fetchTasks({bool loadMore = false}) async {
-    if (loadMore && _currentPage >= 3) {
+    if (loadMore && _offset == _totalPages) {
       // No more pages to load
       loadmoreController.loadNoData();
       notifyListeners();
@@ -58,9 +57,16 @@ class TodoListProvider extends ChangeNotifier {
       } else {
         _tasks = newTasks.tasks!;
       }
+      print("____tasks size ${_tasks.length}");
+      _offset = newTasks.pageNumber;
+      _totalPages = newTasks.totalPages;
       loadmoreController.loadComplete();
-      _currentPage++;
+      //_currentPage++;
     } catch (error) {
+      if (error is List) {
+        _errMessage = [error[0], error[1]];
+      }
+
       loadmoreController.loadFailed();
     } finally {
       _isLoading = false;
@@ -68,17 +74,7 @@ class TodoListProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> pullRefresh() async {
-    // Simulate fetching new data (replace with your actual logic)
-    // await Future.delayed(const Duration(seconds: 2));
-    _limit = _tasks.length + limit;
-    _offset = _tasks.length + 1;
-    notifyListeners();
-    await fetchTasks(loadMore: true);
-    // Update your data here (e.g., using setState in a StatefulWidget)
-  }
-
-  String isSameDay(int currentIndex) {
+  String getHeaderDate(int currentIndex) {
     String formattedDate = "";
 
     if (currentIndex == 0) {
@@ -100,9 +96,8 @@ class TodoListProvider extends ChangeNotifier {
     return formattedDate;
   }
 
-  setLimitOffset({required int limit, required int offset}) {
-    _limit = limit;
-    _offset = offset;
+  clearOffset() {
+    _offset = 0;
     notifyListeners();
   }
 

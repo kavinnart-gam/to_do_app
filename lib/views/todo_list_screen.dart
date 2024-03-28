@@ -18,7 +18,8 @@ class TodoListScreen extends StatefulWidget {
 class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObserver {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   Timer? _timer;
-  int timerDuration = 10;
+  int timerDuration = 1000;
+  ValueNotifier<int> dialogTrigger = ValueNotifier(0);
 
   @override
   void initState() {
@@ -77,11 +78,11 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
         onWillPop: () async {
           return false;
         },
-        child: Scaffold(
-          body: Column(
+        child: Scaffold(body: Consumer<TodoListProvider>(builder: (context, provider, _) {
+          return Column(
             children: [
               SizedBox(
-                // color: Colors.black.withOpacity(0.25),
+                //color: Colors.black.withOpacity(0.25),
                 height: MediaQuery.of(context).size.height * 0.3,
                 child: Stack(
                   children: <Widget>[
@@ -89,16 +90,29 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: Colors.purple.withOpacity(0.25)),
                       //color: Colors.purple.withOpacity(0.25),
                       width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.24,
-                      // child: Center(
-                      //   child: Text(
-                      //     "Home",
-                      //     style: TextStyle(color: Colors.white, fontSize: 18.0),
-                      //   ),
-                      // ),
+                      height: MediaQuery.of(context).size.height * 0.27,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 30),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hi! User",
+                              style: TextStyle(color: Colors.black.withOpacity(0.7), fontSize: 20.0),
+                              textAlign: TextAlign.left,
+                            ),
+                            Text(
+                              "This is just a sample UI.",
+                              style: TextStyle(color: Colors.black.withOpacity(0.7), fontSize: 16.0),
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     Positioned(
-                      top: MediaQuery.of(context).size.height * 0.21,
+                      top: MediaQuery.of(context).size.height * 0.24,
                       left: 0.0,
                       right: 0.0,
                       child: Container(
@@ -110,30 +124,69 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ElevatedButton(
-                                onPressed: () async {
-                                  todoProvider.setLimitOffset(limit: 10, offset: 0);
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                              margin: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: provider.currentStatus == "TODO" ? Colors.purple.withOpacity(0.1) : Colors.transparent),
+                              child: InkWell(
+                                onTap: () async {
+                                  todoProvider.clearOffset();
                                   todoProvider.setCurrentStatus("TODO");
                                   todoProvider.clearTask();
                                   await todoProvider.fetchTasks(loadMore: false);
                                 },
-                                child: const Text("To-do")),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  todoProvider.setLimitOffset(limit: 10, offset: 0);
+                                child: Text(
+                                  "To-do",
+                                  style: TextStyle(
+                                    color: provider.currentStatus == "TODO" ? Colors.white : Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                              margin: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: provider.currentStatus == "DOING" ? Colors.purple.withOpacity(0.1) : Colors.transparent),
+                              child: InkWell(
+                                onTap: () async {
+                                  todoProvider.clearOffset();
                                   todoProvider.setCurrentStatus("DOING");
                                   todoProvider.clearTask();
                                   await todoProvider.fetchTasks(loadMore: false);
                                 },
-                                child: const Text("Doing")),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  todoProvider.setLimitOffset(limit: 10, offset: 0);
+                                child: Text(
+                                  "Doing",
+                                  style: TextStyle(
+                                    color: provider.currentStatus == "DOING" ? Colors.white : Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                              margin: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: provider.currentStatus == "DONE" ? Colors.purple.withOpacity(0.1) : Colors.transparent),
+                              child: InkWell(
+                                onTap: () async {
+                                  todoProvider.clearOffset();
                                   todoProvider.setCurrentStatus("DONE");
                                   todoProvider.clearTask();
                                   await todoProvider.fetchTasks(loadMore: false);
                                 },
-                                child: const Text("Done"))
+                                child: Text(
+                                  "Done",
+                                  style: TextStyle(
+                                    color: provider.currentStatus == "DONE" ? Colors.white : Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -141,91 +194,130 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                   ],
                 ),
               ),
-              Consumer<TodoListProvider>(builder: (context, provider, _) {
-                return Expanded(
-                  child: SmartRefresher(
-                    enablePullDown: false,
-                    enablePullUp: true,
-                    controller: provider.loadmoreController,
-                    onLoading: provider.pullRefresh,
-                    child: SlidableAutoCloseBehavior(
-                      child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          itemCount: provider.tasks.length,
-                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                          itemBuilder: (context, index) {
-                            return Slidable(
-                              key: ValueKey(provider.tasks[index].id),
-                              endActionPane: ActionPane(
-                                motion: const ScrollMotion(),
-                                extentRatio: 0.27,
-                                children: [
-                                  SlidableAction(
-                                    onPressed: (_) {
-                                      provider.deleteTaskById(provider.tasks[index].id);
-                                    },
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    label: 'Delete \ntask',
-                                  ),
-                                ],
-                              ),
-                              child: Container(
-                                  margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        provider.isSameDay(index),
-                                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        provider.tasks[index].createdAt,
-                                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        provider.tasks[index].status,
-                                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                                      ),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.check_box,
-                                            color: Colors.blue,
-                                            size: 40,
-                                          ),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  provider.tasks[index].title,
-                                                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                                                ),
-                                                Text(
-                                                  provider.tasks[index].description ?? '',
-                                                  style: const TextStyle(
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+              provider.errMessage.isNotEmpty
+                  ? Expanded(
+                      child: ValueListenableBuilder(
+                        valueListenable: dialogTrigger,
+                        builder: (ctx, value, child) {
+                          Future.delayed(
+                            const Duration(seconds: 0),
+                            () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text(provider.errMessage.first),
+                                    content: Text(provider.errMessage.last),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: const Text('Ok'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
                                       ),
                                     ],
-                                  )),
-                            );
-                          }),
-                    ),
-                  ),
-                );
-              })
+                                  );
+                                },
+                              );
+                            },
+                          );
+                          return const SizedBox();
+                        },
+                      ),
+                    )
+                  : Expanded(
+                      child: SmartRefresher(
+                        enablePullDown: false,
+                        enablePullUp: true,
+                        controller: provider.loadmoreController,
+                        onLoading: () async {
+                          await provider.fetchTasks(loadMore: true);
+                        },
+                        child: SlidableAutoCloseBehavior(
+                          child: ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              scrollDirection: Axis.vertical,
+                              shrinkWrap: true,
+                              itemCount: provider.tasks.length,
+                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                              itemBuilder: (context, index) {
+                                final headerDate = provider.getHeaderDate(index);
+                                return Slidable(
+                                  key: ValueKey(provider.tasks[index].id),
+                                  endActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    extentRatio: 0.27,
+                                    children: [
+                                      SlidableAction(
+                                        onPressed: (_) {
+                                          provider.deleteTaskById(provider.tasks[index].id);
+                                        },
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.white,
+                                        label: 'Delete \ntask',
+                                      ),
+                                    ],
+                                  ),
+                                  child: Container(
+                                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          if (headerDate.isNotEmpty) ...[
+                                            SizedBox(
+                                              height: index == 0 ? 0 : 15,
+                                            ),
+                                            Text(
+                                              provider.getHeaderDate(index),
+                                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              const Icon(
+                                                Icons.check_box,
+                                                color: Colors.blue,
+                                                size: 40,
+                                              ),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      provider.tasks[index].title,
+                                                      maxLines: 1, // Restrict the number of lines to 1
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                                    ),
+                                                    Text(
+                                                      provider.tasks[index].description ?? '',
+                                                      maxLines: 3, // Restrict the number of lines to 3
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.more_vert,
+                                                color: Colors.grey,
+                                                size: 20.0,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )),
+                                );
+                              }),
+                        ),
+                      ),
+                    )
             ],
-          ),
-        ),
+          );
+        })),
       ),
     );
   }

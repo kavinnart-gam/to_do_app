@@ -1,15 +1,19 @@
 class TaskResponse {
+  int totalPages;
+  int pageNumber;
   List<Task>? tasks;
-  TaskResponse({
-    this.tasks,
-  });
+  TaskResponse({this.tasks, required this.totalPages, required this.pageNumber});
 
   factory TaskResponse.fromJson(Map<String, dynamic> json) => TaskResponse(
         tasks: List<Task>.from(json["tasks"].map((x) => Task.fromJson(x))),
+        pageNumber: json["pageNumber"],
+        totalPages: json["totalPages"],
       );
 
   Map<String, dynamic> toJson() => {
         "tasks": List<dynamic>.from(tasks!.map((x) => x.toJson())),
+        "pageNumber": pageNumber,
+        "totalPages": totalPages,
       };
 }
 
