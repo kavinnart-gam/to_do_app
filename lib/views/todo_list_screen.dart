@@ -274,10 +274,11 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                                           ],
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              const Icon(
+                                              Icon(
                                                 Icons.check_box,
-                                                color: Colors.blue,
+                                                color: Colors.blue.withOpacity(0.5),
                                                 size: 40,
                                               ),
                                               Expanded(
