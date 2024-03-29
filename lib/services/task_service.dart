@@ -4,6 +4,7 @@ import 'package:to_do_app/utils/api_exception.dart';
 
 class TaskService {
   final dio = Dio();
+  TaskService({Dio? dio});
   Future<TaskResponse> fetchTasks({required String status, required int limit, required int offset}) async {
     try {
       final response = await dio.get("https://todo-list-api-mfchjooefq-as.a.run.app/todo-list?", queryParameters: {

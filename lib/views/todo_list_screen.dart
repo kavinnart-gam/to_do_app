@@ -82,13 +82,11 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
           return Column(
             children: [
               SizedBox(
-                //color: Colors.black.withOpacity(0.25),
                 height: MediaQuery.of(context).size.height * 0.3,
                 child: Stack(
                   children: <Widget>[
                     Container(
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: Colors.purple.withOpacity(0.25)),
-                      //color: Colors.purple.withOpacity(0.25),
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height * 0.27,
                       child: Padding(
@@ -117,9 +115,6 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                       right: 0.0,
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-                        //padding: EdgeInsets.symmetric(horizontal: 20.0),
-                        //height: 50,
-                        //width: 300,
                         decoration: BoxDecoration(borderRadius: BorderRadius.circular(22.5), color: const Color(0xFFEDF2F7)),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -194,6 +189,7 @@ class _TodoListScreenState extends State<TodoListScreen> with WidgetsBindingObse
                   ],
                 ),
               ),
+              // If the API returns an error message, show an alert dialog
               provider.errMessage.isNotEmpty
                   ? Expanded(
                       child: ValueListenableBuilder(

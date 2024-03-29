@@ -5,13 +5,8 @@ import 'package:to_do_app/services/task_service.dart';
 
 class TodoListProvider extends ChangeNotifier {
   List<Task> _tasks = <Task>[];
-  // int _currentPage = 1;
-  bool _isLoading = false;
-
   List<Task> get tasks => _tasks;
-  bool get isLoading => _isLoading;
-
-  int _limit = 20;
+  final int _limit = 20;
   int get limit => _limit;
   int _offset = 0;
   int get offset => _offset;
@@ -27,28 +22,26 @@ class TodoListProvider extends ChangeNotifier {
   static List<String> monthNames = [
     'JAN',
     'FEB',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'MAR',
+    'APR',
+    'MAY',
+    'JuN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
   ];
 
   Future<void> fetchTasks({bool loadMore = false}) async {
+    // when user swipe to loadmore data but page number == totalpage set loadmoreController to no data
     if (loadMore && _offset == _totalPages) {
       // No more pages to load
       loadmoreController.loadNoData();
       notifyListeners();
       return;
     }
-
-    _isLoading = true;
-    notifyListeners();
 
     try {
       TaskResponse newTasks = await TaskService().fetchTasks(status: currentStatus, limit: limit, offset: offset);
@@ -57,19 +50,15 @@ class TodoListProvider extends ChangeNotifier {
       } else {
         _tasks = newTasks.tasks!;
       }
-      print("____tasks size ${_tasks.length}");
       _offset = newTasks.pageNumber;
       _totalPages = newTasks.totalPages;
       loadmoreController.loadComplete();
-      //_currentPage++;
     } catch (error) {
       if (error is List) {
         _errMessage = [error[0], error[1]];
       }
-
       loadmoreController.loadFailed();
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
@@ -78,12 +67,14 @@ class TodoListProvider extends ChangeNotifier {
     String formattedDate = "";
 
     if (currentIndex == 0) {
+      // if first index display group of date
       DateTime parsedDate = DateTime.parse(_tasks[currentIndex].createdAt);
       int month = parsedDate.month;
       int day = parsedDate.day;
       int year = parsedDate.year;
       return '$day ${monthNames[month - 1]} $year';
     } else {
+      // check current date and date of the previous index is not equal, display group of date
       DateTime parsedDate = DateTime.parse(_tasks[currentIndex].createdAt);
       String currMonth = '${parsedDate.day} ${monthNames[parsedDate.month - 1]} ${parsedDate.year}';
       DateTime parsedDate2 = DateTime.parse(_tasks[currentIndex - 1].createdAt);
@@ -97,16 +88,19 @@ class TodoListProvider extends ChangeNotifier {
   }
 
   clearOffset() {
+    // when click new tab set offset to 0
     _offset = 0;
     notifyListeners();
   }
 
   setCurrentStatus(String newStatus) {
+    // set current status when click tab
     _currentStatus = newStatus;
     notifyListeners();
   }
 
   clearTask() {
+    // when change tab clear old task list
     _tasks.clear();
     notifyListeners();
   }
@@ -116,19 +110,4 @@ class TodoListProvider extends ChangeNotifier {
     tasks.removeWhere((element) => element.id == taskId);
     notifyListeners();
   }
-
-  // String getDate(String date) {
-  //   String formattedDate = "";
-  //   // if (dateHeader.isEmpty) {
-  //   DateTime parsedDate = DateTime.parse(date);
-  //   int month = parsedDate.month;
-  //   int day = parsedDate.day;
-  //   int year = parsedDate.year;
-  //   formattedDate = '$day ${monthNames[month - 1]} $year';
-  //   //formattedDate = DateFormat('dd MM yyyy').format(DateTime.parse("2023-03-24T19:30:00Z"));
-  //   //}
-  //   //_tasks[index].createdAt = formattedDate;
-  //   // createdAtString
-  //   return formattedDate;
-  // }
 }
